@@ -1,0 +1,447 @@
+﻿<!doctype html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Amaze UI Admin table Examples</title>
+  <meta name="description" content="这是一个 table 页面">
+  <meta name="keywords" content="table">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <link rel="icon" type="image/png" href="assets/i/favicon.png">
+  <link rel="apple-touch-icon-precomposed" href="assets/i/app-icon72x72@2x.png">
+  <meta name="apple-mobile-web-app-title" content="Amaze UI" />
+  <link rel="stylesheet" href="assets/css/amazeui.min.css"/>
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <script type="text/javascript" src="assets/js/jquery-latest.js"></script>
+  <script type="text/javascript" src="assets/js/config.js"></script>
+  <script>
+    $(document).ready(function() {
+      //这里取url页码好分页
+      var  intPageIndex=0;//页码
+      var  eachPageNum=20;//每页显示的数量
+      var intTime=-0;//早餐1 午餐2 晚餐3
+      var state=-1;//订单状态
+      var orderTime=nowtime();//"2016-08-24";//日期
+      var shopID=1;//店铺编号
+      var name="-1";//订餐人姓名
+      if (GetQueryString("intPageIndex")!=null)
+      {
+        intPageIndex=GetQueryString("intPageIndex");
+      }
+      if (GetQueryString("State")!=null)
+      {
+        state=GetQueryString("State");
+      }
+      if (GetQueryString("intTime")!=null)
+      {
+        intTime=GetQueryString("intTime");
+      }
+      if (GetQueryString("OrderTime")!=null)
+      {
+        orderTime=GetQueryString("OrderTime");
+      }
+      if(GetQueryString("Name")!=null)
+      {
+        name=GetQueryString("Name");
+      }
+      //绑定select下拉框内容
+      //状态下拉框
+      //$("#slState").val(state);
+      $("#slState option[value='"+state+"']").attr("selected", "selected");
+      $("#slIntTime option[value='"+intTime+"']").attr("selected", "selected");
+      $("#inputOrderTime").val(orderTime);
+      $("#inputName").val(name);
+
+      //取数据填充表格
+      $.ajax({
+        method: "Post",
+        url:GetStaticUrlString()+ "/api/DingCan/SelectOrderDataByPageIndex",
+        data: {intPageIndex:intPageIndex,eachPageNum:eachPageNum,intTime:intTime,state:state,OrderTime:orderTime,ShopID:shopID,Name:name}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+        //alert(ndata);
+        var ddd = JSON.parse(ndata);
+        var arrayResult = new Array();
+        if (ddd.Code == 200) {
+          arrayResult = ddd.result;
+          var $table= $("#adminInfo");
+          var vTr="";
+          for (var i = 0; i < arrayResult.length; i++) {
+          //  alert(arrayResult[i].Name);
+            //给table赋值
+
+            vTr+=' <tr> <td><input type="checkbox" /></td> <td>'+arrayResult[i].OrderID+'</td> <td><a href="OrderUpdate.html?OrderID='+arrayResult[i].OrderID+'">'+arrayResult[i].Name +'</a></td> <td>'+arrayResult[i].Phone+'</td> <td>'+arrayResult[i].Address+'</td> <td>'+arrayResult[i].OrderTime+'</td> <td>'+arrayResult[i].TotalPrice+'</td> <td>'+(arrayResult[i].IsPay==0?  "否":"是" )+'</td> <td class="am-hide-sm-only">'+(arrayResult[i].State==0? "未完成":"已完成")+'</td> '+
+            '<td> <div class="am-btn-toolbar"> <div class="am-btn-group am-btn-group-xs"> <button type="button" class="am-btn am-btn-default am-btn-xs am-text-secondary" onclick="UpdateOrderInfo(\''+arrayResult[i].OrderID+'\')" ><span class="am-icon-pencil-square-o" ></span> 编辑</button> '+
+            ' <button type="button" class="am-btn am-btn-default am-btn-xs am-text-danger am-hide-sm-only" onclick="DelOrder(\''+arrayResult[i].OrderID+'\')"><span class="am-icon-trash-o"></span> 删除</input> </div> </div> </td> </tr>';
+          } $table.append(vTr);
+
+          //绑定分页数据
+
+          var rowCount=new  Array();
+          rowCount=ddd.RowCount;
+          $("#spanNum").html(rowCount[0].Num);
+          var totalPageNum=Math.ceil(rowCount[0].Num/eachPageNum);//总页数
+          var strPage='<ul class="am-pagination"> ';
+          if(intPageIndex<1)//说明在首页 禁用上一页功能
+          {
+            strPage+='<li class="am-disabled"><a href="#">«</a></li>';
+          }
+          else
+          {
+            strPage+='<li><a href='+'"Order.html?intPageIndex='+(intPageIndex-1)+GetUrl()+'&Name='+name+'">«</a></li>';
+          }
+
+          //分页中间数字页数
+          for(var i=1;i<=totalPageNum;i++)
+          {
+            if ((i-1)==intPageIndex) //当前页 不允许点
+            {
+              strPage += '<li class="am-disabled"><a href=' + '"Order.html?intPageIndex=' + (i-1) + GetUrl()+'&Name='+name+'">' + i + '</a></li>';
+            }
+            else
+            {
+              strPage += '<li><a href=' + '"Order.html?intPageIndex=' + (i-1) +GetUrl()+'&Name='+name+ '">' + i + '</a></li>';//+'&&category='+GetQueryString("category")
+            }
+          }
+          //分页下一页功能
+          if(intPageIndex>totalPageNum-2)//说明在末页 禁用下一页功能
+          {
+            strPage+='<li class="am-disabled"><a href="#">»</a></li>';
+          }
+          else
+          {
+            strPage += '<li><a href=' + '"Order.html?intPageIndex=' + (accAdd(intPageIndex,1)) +GetUrl()+'&Name='+name+ '">»</a></li>';//+'&&category='+GetQueryString("category")
+          }
+          $("div.am-fr").html(strPage);
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+    })
+
+    function DelOrder(OID) {
+      alert("进来了!"+OID);
+      $.ajax({
+        method: "Post",
+        url: GetStaticUrlString()+"/api/DingCan/DelOrder",
+        data:{OrderID:OID}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+
+        var ddd = JSON.parse(ndata);
+        alert("跑到这了！"+ddd.Code);
+        if(ddd.Code == 200){
+        alert("删除成功!");
+          window.location.reload();
+        }
+
+      }).fail(function(err,textStatus,errorThrown){
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+    }
+    function UpdateOrderInfo (OID) {
+        alert(OID);
+        var url="OrderUpdate.html?OrderID="+OID;
+        window.location.href=url;
+    }
+    //取url中的参数
+    function GetQueryString(name) {
+      var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if(r!=null)return  decodeURIComponent(r[2]); return null;
+    }
+    //按订单人姓名查询
+    function SelectByName(){var url="Order.html?intPageIndex=0&&State="+$("#slState").val()+"&&intTime="+$("#slIntTime").val()+"&&OrderTime="+$("#inputOrderTime").val()+"&Name="+$("#inputName").val();
+      window.location.href=encodeURI(url);
+    }
+    //订单状态改变
+    function StateChange() {
+      var url="Order.html?intPageIndex=0&&State="+$("#slState").val()+"&&intTime="+$("#slIntTime").val()+"&&OrderTime="+$("#inputOrderTime").val()+"&Name="+$("#inputName").val();
+      window.location.href=url;
+    }
+    //订单日期改变
+    function IntTimeChange() {
+      var url="Order.html?intPageIndex=0&&State="+$("#slState").val()+"&&intTime="+$("#slIntTime").val()+"&&OrderTime="+$("#inputOrderTime").val()+"&Name="+$("#inputName").val();
+      window.location.href=url;
+    }
+    //日历控件改变
+    function OrderTimeChange() {
+      var url="Order.html?intPageIndex=0&&State="+$("#slState").val()+"&&intTime="+$("#slIntTime").val()+"&&OrderTime="+$("#inputOrderTime").val()+"&Name="+$("#inputName").val();
+      window.location.href=url;
+    }
+    //取url
+    function GetUrl() {
+      var url="&&State="+$("#slState").val()+"&&intTime="+$("#slIntTime").val()+"&&OrderTime="+$("#inputOrderTime").val();
+      return url;
+    }
+    function SetStateAllCheck(){
+      var strOrderID="";
+        $("#tableOrderInfo").find(":checkbox:checked").each(function(){
+            var val = $(this).parent().next().text();
+            strOrderID+=val+",";
+        });
+      alert(strOrderID);
+        $.ajax({
+            method: "Post",
+            url:GetStaticUrlString()+ "/api/DingCan/UpdateOrderState",
+            data: {OrderID:strOrderID,State:1}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+        }).done(function (ndata) {
+            var ddd = JSON.parse(ndata);
+            if (ddd.Code == 200) {
+                alert("保存成功！");
+                window.location.href="Order.html?intPageIndex="+GetQueryString("intPageIndex")+"&State="+GetQueryString("State")
+                +"&intTime="+GetQueryString("intTime")+"&OrderTime="+GetQueryString("OrderTime")+"&Name="+GetQueryString("Name");
+            }
+        }).fail(function (err, textStatus, errorThrown) {
+            console.log(err);
+            console.log(textStatus);
+            console.log(errorThrown);
+        });
+    }
+    //加法函数
+    function accAdd(arg1,arg2){
+      var r1,r2,m;
+      try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+      try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+      m=Math.pow(10,Math.max(r1,r2))
+      return (arg1*m+arg2*m)/m
+    }
+    //获取当前时间按照yyyy-MM-dd格式
+    function nowtime(){//将当前时间转换成yyyy-MM-dd格式
+      var mydate = new Date();
+      var str = "" + mydate.getFullYear();
+      var mm = mydate.getMonth()+1
+      if(mydate.getMonth()>9){
+        str += "-"+mm;
+      }
+      else{
+        str += "-0" + mm;
+      }
+      if(mydate.getDate()>9){
+        str +="-"+mydate.getDate();
+      }
+      else{
+        str += "-0" + mydate.getDate();
+      }
+      return str;
+    }
+  </script>
+</head>
+<body>
+<!--[if lte IE 9]>
+<p class="browsehappy">你正在使用<strong>过时</strong>的浏览器，Amaze UI 暂不支持。 请 <a href="http://browsehappy.com/" target="_blank">升级浏览器</a>
+  以获得更好的体验！</p>
+<![endif]-->
+
+<header class="am-topbar am-topbar-inverse admin-header">
+  <div class="am-topbar-brand">
+    <strong>点餐系统</strong> <small>后台管理模板</small>
+  </div>
+
+  <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-success am-show-sm-only" data-am-collapse="{target: '#topbar-collapse'}"><span class="am-sr-only">导航切换</span> <span class="am-icon-bars"></span></button>
+
+  <div class="am-collapse am-topbar-collapse" id="topbar-collapse">
+
+    <ul class="am-nav am-nav-pills am-topbar-nav am-topbar-right admin-header-list">
+      <li><a href="javascript:;"><span class="am-icon-envelope-o"></span> 收件箱 <span class="am-badge am-badge-warning">0</span></a></li>
+      <!--<li class="am-dropdown" data-am-dropdown>-->
+        <!--<a class="am-dropdown-toggle" data-am-dropdown-toggle href="javascript:;">-->
+          <!--<span class="am-icon-users"></span> 管理员 <span class="am-icon-caret-down"></span>-->
+        <!--</a>-->
+        <!--<ul class="am-dropdown-content">-->
+          <!--<li><a href="#"><span class="am-icon-user"></span> 资料</a></li>-->
+          <!--<li><a href="#"><span class="am-icon-cog"></span> 设置</a></li>-->
+          <!--<li><a href="#"><span class="am-icon-power-off"></span> 退出</a></li>-->
+        <!--</ul>-->
+      <!--</li>-->
+      <li class="am-hide-sm-only"><a href="javascript:;" id="admin-fullscreen"><span class="am-icon-arrows-alt"></span> <span class="admin-fullText">开启全屏</span></a></li>
+    </ul>
+  </div>
+</header>
+
+<div class="am-cf admin-main">
+  <!-- sidebar start -->
+  <div class="admin-sidebar am-offcanvas" id="admin-offcanvas">
+    <div class="am-offcanvas-bar admin-offcanvas-bar">
+      <ul class="am-list admin-sidebar-list">
+        <li><a href="admin-index.html"><span class="am-icon-home"></span> 首页</a></li>
+        <li><a href="YuanGong.html"><span class="am-icon-table"></span> 员工管理</a></li>
+        <li><a href="admin-table.html"><span class="am-icon-table"></span> 管理员管理</a></li>
+        <li><a href="Food.html?intPageIndex=0&category=-1&FoodName=-1"><span class="am-icon-table"></span> 单品管理</a></li>
+        <li><a href="Order.html?intPageIndex=0"><span class="am-icon-table"></span> 订单管理</a></li>
+        <li><a href="ChuShi.html"><span class="am-icon-table"></span> 厨师任务清单</a></li>
+        <li><a href="SongCan.html"><span class="am-icon-table"></span> 送餐员任务清单</a></li>
+        <li><a href="JX.html"><span class="am-icon-table"></span> 送餐员绩效清单</a></li>
+        <li><a href="FenCan.html"><span class="am-icon-table"></span> 分餐清单打印</a></li>
+        <li><a href="Xl.html"><span class="am-icon-table"></span> 销量查询</a></li>
+        <li><a href="System.html"><span class="am-icon-table"></span> 系统设置</a></li>
+        <li><a href="#"><span class="am-icon-sign-out"></span> 注销</a></li>
+      </ul>
+    </div>
+  </div>
+  <!-- sidebar end -->
+
+  <!-- content start -->
+  <div class="admin-content">
+        <div class="am-tabs am-margin" data-am-tabs>
+          <ul class="am-tabs-nav am-nav am-nav-tabs">
+            <li class="am-active"><a href="#tab1">订单管理</a></li>
+          </ul>
+
+
+
+          <div class="am-tabs-bd">
+
+            <div class="am-tab-panel am-fade am-in am-active" id="tab1">
+              <div class="am-g am-margin-top">
+                <div class="am-u-sm-4 am-u-md-2 am-text-right">订餐时间</div>
+                <div class="am-u-sm-8 am-u-md-10">
+                  <select id="slIntTime" data-am-selected="{btnSize: 'sm'}" onchange="IntTimeChange()">
+                    <option value="-1">全部</option>
+                    <option value="0">当天</option>
+                    <option value="1">早餐</option>
+                    <option value="2">午餐</option>
+                    <option value="3">晚餐</option>
+                  </select>
+                </div>
+              </div>
+
+
+              <div class="am-g am-margin-top">
+                <div class="am-u-sm-4 am-u-md-2 am-text-right">订单状态</div>
+                <div class="am-u-sm-8 am-u-md-10">
+                  <select id="slState" data-am-selected="{btnSize: 'sm'}" onchange="StateChange()">
+                    <option value="-1">所有</option>
+                    <option value="0">未完成</option>
+                    <option value="1">已完成</option>
+                  </select>
+                </div>
+              </div>
+              <div class="am-g am-margin-top">
+                <div class="am-u-sm-4 am-u-md-2 am-text-right">
+                  查询日期
+                </div>
+                <div class="am-u-sm-8 am-u-md-10">
+                  <form action="" class="am-form am-form-inline">
+                    <div class="am-form-group am-form-icon">
+                      <i class="am-icon-calendar"></i>
+                      <input id="inputOrderTime" type="date" class="am-form-field am-input-sm" placeholder="日期" onblur="OrderTimeChange()">
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="am-g am-margin-top">
+                <div class="am-u-sm-4 am-u-md-2 am-text-right">文字检索</div>
+                <div class="am-u-sm-8 am-u-md-10">
+                  <p><input type="text" id="inputName" style="width: 200px;" class="am-form-field am-radius" placeholder="请输入要查询的姓名" onblur="SelectByName()" /></p>
+                </div>
+              </div>
+
+              <div class="am-g am-margin-top">
+                <div class="am-u-sm-4 am-u-md-2 am-text-right">操作</div>
+                <div class="am-u-sm-8 am-u-md-10">
+                  <div class="am-btn-group am-btn-group-xs">
+                    <button type="button" class="am-btn am-btn-default" onclick='window.location.href="OrderAdd.html"'><span class="am-icon-plus"></span> 新增</button>
+                    <button type="button" class="am-btn am-btn-default" onclick="SetStateAllCheck()"><span class="am-icon-save"></span> 批量设置订单为完成</button>
+                    <!--<button type="button" class="am-btn am-btn-default"><span class="am-icon-archive"></span> 完成</button>-->
+                    <!--<button type="button" class="am-btn am-btn-default"><span class="am-icon-trash-o"></span> 删除</button>-->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+        <!--<div class="am-u-sm-12 am-u-md-3">-->
+          <!--<div class="am-input-group am-input-group-sm">-->
+            <!--<input type="text" class="am-form-field">-->
+          <!--<span class="am-input-group-btn">-->
+            <!--<button class="am-btn am-btn-default" type="button">搜索</button>-->
+          <!--</span>-->
+          <!--</div>-->
+        <!--</div>-->
+      <!--</div>-->
+
+      <div class="am-g">
+        <div class="am-u-sm-12">
+          <form class="am-form">
+            <table id="tableOrderInfo" class="am-table am-table-striped am-table-hover table-main">
+              <thead>
+              <tr>
+                <th class="table-check"></th><th class="table-title">订单号</th><th class="table-title">联系人</th>
+                <th class="table-title">联系人电话</th><th class="table-title">送餐地址</th><th class="table-type">送餐时间</th><th class="table-type">总价</th><th class="table-type">是否付款</th>
+                <th class="table-type">订单状态</th><th class="table-set">操作</th>
+              </tr>
+              </thead>
+              <tbody id="adminInfo">
+              <!--<tr>-->
+                <!--<td><input type="checkbox" /></td>-->
+                <!--<td>1</td>-->
+                <!--<td><a href="#">Business management</a></td>-->
+                <!--<td>default</td>-->
+                <!--<td class="am-hide-sm-only">测试1号</td>-->
+                <!--<td class="am-hide-sm-only">2014年9月4日 7:28:47</td>-->
+                <!--<td>-->
+                  <!--<div class="am-btn-toolbar">-->
+                    <!--<div class="am-btn-group am-btn-group-xs">-->
+                      <!--<button class="am-btn am-btn-default am-btn-xs am-text-secondary"><span class="am-icon-pencil-square-o"></span> 编辑</button>-->
+                      <!--<button class="am-btn am-btn-default am-btn-xs am-hide-sm-only"><span class="am-icon-copy"></span> 复制</button>-->
+                      <!--<button class="am-btn am-btn-default am-btn-xs am-text-danger am-hide-sm-only"><span class="am-icon-trash-o"></span> 删除</button>-->
+                    <!--</div>-->
+                  <!--</div>-->
+                <!--</td>-->
+              <!--</tr>-->
+              </tbody>
+            </table>
+            <div class="am-cf">
+              共 <span id="spanNum">0</span>  条记录
+              <div class="am-fr">
+                <ul class="am-pagination">
+                  <!--<li class="am-disabled"><a href="#">«</a></li>-->
+                  <!--<li class="am-active"><a href="#">1</a></li>-->
+                  <!--<li><a href="#">2</a></li>-->
+                  <!--<li><a href="#">3</a></li>-->
+                  <!--<li><a href="#">4</a></li>-->
+                  <!--<li><a href="#">5</a></li>-->
+                  <!--<li><a href="#">»</a></li>-->
+                </ul>
+              </div>
+            </div>
+            <hr />
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="admin-content-footer">
+      <hr>
+      <p class="am-padding-left">© 2014 AllMobilize, Inc. Licensed under MIT license.</p>
+    </footer>
+
+  </div>
+  <!-- content end -->
+</div>
+
+<a href="#" class="am-icon-btn am-icon-th-list am-show-sm-only admin-menu" data-am-offcanvas="{target: '#admin-offcanvas'}"></a>
+
+<footer>
+  <hr>
+  <p class="am-padding-left">© 2014 AllMobilize, Inc. Licensed under MIT license.</p>
+</footer>
+
+<!--[if lt IE 9]>
+<script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
+<script src="assets/js/amazeui.ie8polyfill.min.js"></script>
+<![endif]-->
+
+<!--[if (gte IE 9)|!(IE)]><!-->
+<script src="assets/js/amazeui.min.js"></script>
+<!--<![endif]-->
+<script src="assets/js/amazeui.min.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+﻿<!doctype html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Amaze UI Admin user Examples</title>
+  <meta name="description" content="这是一个 user 页面">
+  <meta name="keywords" content="user">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <link rel="icon" type="image/png" href="assets/i/favicon.png">
+  <link rel="apple-touch-icon-precomposed" href="assets/i/app-icon72x72@2x.png">
+  <meta name="apple-mobile-web-app-title" content="Amaze UI" />
+  <link rel="stylesheet" href="assets/css/amazeui.min.css"/>
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <script type="text/javascript" src="assets/js/jquery-latest.js"></script>
+  <script>
+    //页面初始化
+    $(document).ready(function() {
+      //绑定送餐员下拉框内容
+      $.ajax({
+        method: "Post",
+        async:false,
+        url: "http://10.20.33.243/api/DingCan/SelectTotalYuanGong",
+        data: {},
+        async: false
+      }).done(function (sdata) {
+        //alert("进来了！");
+        var OrderInfoSelect = JSON.parse(sdata);
+        var arrayResult = new Array();
+        if (OrderInfoSelect.Code == 200) {
+          //      alert(ddd.Code);
+          arrayResult = OrderInfoSelect.result;
+
+          var strSelect='<option value="-1">未指定</option>';
+          for (var i = 0; i < arrayResult.length; i++) {
+            //给select赋值
+            if(arrayResult[i].YuanGongType==2) {
+              strSelect += '<option value="'+arrayResult[i].YuanGongID+'">'+arrayResult[i].Name+'</option>';
+            }
+          }
+
+          $("#OrderYuanGongID").html(strSelect);
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+
+      $.ajax({
+        method: "Post",
+        async:false,
+        url: "http://10.20.33.243/api/DingCan/SelectOrderData",
+        data: {OrderID:GetQueryString("OrderID")}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+        //alert("进来了！");
+        var ddd = JSON.parse(ndata);
+        var arrayResult = new Array();
+        if (ddd.Code == 200) {
+          arrayResult = ddd.result;
+          var vTr="";
+          for (var i = 0; i < arrayResult.length; i++) {
+            //给页面赋值
+            $("#OrderID").html(arrayResult[i].OrderID);
+            $("#OrderName").html(arrayResult[i].Name);
+            $("#OrderPhone").html(arrayResult[i].Phone);
+            $("#OrderTotalPrice").html("总价:￥"+arrayResult[i].TotalPrice);
+            $("#OrderAddress").html(arrayResult[i].Address);
+            $("#OrderIsPayy").val(arrayResult[i].IsPay);
+            $("#OrderState").val(arrayResult[i].State);
+            $("#OrderYuanGongGroup").val(arrayResult[i].YuanGongGroup);
+            $("#OrderYuanGongID").val(arrayResult[i].YuanGongID);
+            $("#OrderIsPay").html(arrayResult[i].IsPay==0? "未付款":"已付款");
+            var time=arrayResult[i].OrderTime+"0000";
+            var timeArray=time.split("");
+            timeArray[3]+='-';
+            timeArray[5]+='-';
+            timeArray[7]+=' ';
+            timeArray[9]+=':';
+            timeArray[11]+=":";
+            time="";
+            for (var i=0;i<timeArray.length;i++)
+            {
+                time+=timeArray[i];
+            }
+            $("#OrderTime").html(time);
+          }
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+
+      $.ajax({
+        method: "Post",
+        async:false,
+        url: "http://10.20.33.243/api/DingCan/SelectOrderInfo",
+        data: {OrderID:GetQueryString("OrderID")}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+        //alert("进来了！");
+        var OrderInfoTable = JSON.parse(ndata);
+        var arrayResult = new Array();
+        if (OrderInfoTable.Code == 200) {
+          //      alert(ddd.Code);
+          arrayResult = OrderInfoTable.result;
+          var vTr="";
+          var $table=$("#OrderInfo");
+          for (var i = 0; i < arrayResult.length; i++) {
+            //给table赋值
+            vTr+="<tr><td>"+arrayResult[i].FoodName+"</td><td>*"+arrayResult[i].Num+"</td><td>￥"+arrayResult[i].Price+"</td></tr>";
+          }
+          $table.append(vTr);
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+
+    });
+    //指定送餐员保存
+    function YuanGongSave() {
+      $.ajax({
+        method: "Post",
+        url: "http://10.20.33.243/api/DingCan/UpdateOrderYuanGong",
+        data: {OrderID:GetQueryString("OrderID"),YuanGongGroup:$("#OrderYuanGongGroup").val(),YuanGongID:$("#OrderYuanGongID").val()}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+        var ddd = JSON.parse(ndata);
+        if (ddd.Code == 200) {
+          alert("保存成功！");
+          window.location.href="OrderUpdate.html?OrderID="+GetQueryString("OrderID");
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+    }
+    //状态保存
+    function StateSave() {
+      $.ajax({
+        method: "Post",
+        url: "http://10.20.33.243/api/DingCan/UpdateOrderState",
+        data: {OrderID:GetQueryString("OrderID"),State:$("#OrderState").val()}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+        var ddd = JSON.parse(ndata);
+        if (ddd.Code == 200) {
+          alert("保存成功！");
+          window.location.href="OrderUpdate.html?OrderID="+GetQueryString("OrderID");
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+    }
+    //是否付款保存
+    function IsPaySave() {
+      $.ajax({
+        method: "Post",
+        url: "http://10.20.33.243/api/DingCan/UpdateOrderPay",
+        data: {OrderID:GetQueryString("OrderID"),IsPay:$("#OrderIsPayy").val(),PayID:"000****999000"}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+      }).done(function (ndata) {
+        var ddd = JSON.parse(ndata);
+        if (ddd.Code == 200) {
+          alert("保存成功！");
+          window.location.href="OrderUpdate.html?OrderID="+GetQueryString("OrderID");
+        }
+      }).fail(function (err, textStatus, errorThrown) {
+        console.log(err);
+        console.log(textStatus);
+        console.log(errorThrown);
+      });
+    }
+    //取url中的参数
+    function GetQueryString(name)
+    {
+      var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if(r!=null)return  unescape(r[2]); return null;
+    }
+    //js打印部分页面
+    function doPrint() {
+      bdhtml=window.document.body.innerHTML;
+      sprnstr="<!--startprint-->";
+      eprnstr="<!--endprint-->";
+      prnhtml=bdhtml.substr(bdhtml.indexOf(sprnstr)+17);
+      prnhtml=prnhtml.substring(0,prnhtml.indexOf(eprnstr));
+      window.document.body.innerHTML=prnhtml;
+      window.print();
+    }
+  </script>
+</head>
+<body>
+<!--[if lte IE 9]>
+<p class="browsehappy">你正在使用<strong>过时</strong>的浏览器，Amaze UI 暂不支持。 请 <a href="http://browsehappy.com/" target="_blank">升级浏览器</a>
+  以获得更好的体验！</p>
+<![endif]-->
+
+<header class="am-topbar am-topbar-inverse admin-header">
+  <div class="am-topbar-brand">
+    <strong>点餐系统</strong> <small>后台管理模板</small>
+  </div>
+
+  <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-success am-show-sm-only" data-am-collapse="{target: '#topbar-collapse'}"><span class="am-sr-only">导航切换</span> <span class="am-icon-bars"></span></button>
+
+  <div class="am-collapse am-topbar-collapse" id="topbar-collapse">
+
+    <ul class="am-nav am-nav-pills am-topbar-nav am-topbar-right admin-header-list">
+      <li><a href="javascript:;"><span class="am-icon-envelope-o"></span> 收件箱 <span class="am-badge am-badge-warning">5</span></a></li>
+      <li class="am-dropdown" data-am-dropdown>
+        <a class="am-dropdown-toggle" data-am-dropdown-toggle href="javascript:;">
+          <span class="am-icon-users"></span> 管理员 <span class="am-icon-caret-down"></span>
+        </a>
+        <ul class="am-dropdown-content">
+          <li><a href="#"><span class="am-icon-user"></span> 资料</a></li>
+          <li><a href="#"><span class="am-icon-cog"></span> 设置</a></li>
+          <li><a href="#"><span class="am-icon-power-off"></span> 退出</a></li>
+        </ul>
+      </li>
+      <li class="am-hide-sm-only"><a href="javascript:;" id="admin-fullscreen"><span class="am-icon-arrows-alt"></span> <span class="admin-fullText">开启全屏</span></a></li>
+    </ul>
+  </div>
+</header>
+
+<div class="am-cf admin-main">
+  <!-- sidebar start -->
+  <div class="admin-sidebar am-offcanvas" id="admin-offcanvas">
+    <div class="am-offcanvas-bar admin-offcanvas-bar">
+      <ul class="am-list admin-sidebar-list">
+        <li><a href="admin-index.html"><span class="am-icon-home"></span> 首页</a></li>
+        <li><a href="YuanGong.html"><span class="am-icon-table"></span> 员工管理</a></li>
+        <li><a href="admin-table.html"><span class="am-icon-table"></span> 管理员管理</a></li>
+        <li><a href="Food.html?intPageIndex=0&category=-1&FoodName=-1"><span class="am-icon-table"></span> 单品管理</a></li>
+        <li><a href="Order.html?intPageIndex=0"><span class="am-icon-table"></span> 订单管理</a></li>
+        <li><a href="ChuShi.html"><span class="am-icon-table"></span> 厨师任务清单</a></li>
+        <li><a href="SongCan.html"><span class="am-icon-table"></span> 送餐员任务清单</a></li>
+        <li><a href="JX.html"><span class="am-icon-table"></span> 送餐员绩效清单</a></li>
+        <li><a href="FenCan.html"><span class="am-icon-table"></span> 分餐清单打印</a></li>
+        <li><a href="Xl.html"><span class="am-icon-table"></span> 销量查询</a></li>
+        <li><a href="System.html"><span class="am-icon-table"></span> 系统设置</a></li>
+        <li><a href="#"><span class="am-icon-sign-out"></span> 注销</a></li>
+      </ul>
+    </div>
+  </div>
+  <!-- sidebar end -->
+
+  <!-- content start -->
+  <div class="admin-content">
+    <div class="admin-content-body">
+      <div class="am-cf am-padding am-padding-bottom-0">
+        <div class="am-fl am-cf"><strong class="am-text-primary am-text-lg">订单详情</strong> / <small>Order information</small></div>
+      </div>
+
+      <hr/>
+      <!--startprint-->
+      <div class="am-g">
+        <div class="am-u-sm-12 am-u-md-4 am-u-md-push-8">
+          <div class="am-panel am-panel-default">
+            <div class="am-panel-bd">
+                <h3>订餐人信息</h3>
+                <p>订餐人姓名:<span id="OrderName" >张伟</span></p>
+                <p>订餐人电话:<span id="OrderPhone">13677889988</span></p>
+                <p>订餐人地址:<span id="OrderAddress">住院部 4F 神经科 4011床</span></p>
+                <h3>订单信息</h3>
+                <p>市立医院(东院) <span id="OrderIsPay" style="color:red;margin-left: 85px" >已付款</span></p>
+                <p>订单编号:<span id="OrderID">20160831162323009</span></p>
+                <p>预定时间:<span id="OrderTime"></span></p>
+                <p>
+                  <table width="300px" id="OrderInfo">
+                  <!--<thead>-->
+                  <!--<th>名称</th><th>数量</th><th>价格</th>-->
+                  <!--</thead>-->
+                  <!--<tr>-->
+                    <!--<td>红烧牛肉面</td><td>*2</td><td>￥30</td>-->
+                  <!--</tr>-->
+                  <!--<tr>-->
+                    <!--<td>尖椒炒鸡蛋</td><td>*3</td><td>￥36.5</td>-->
+                  <!--</tr>-->
+                  <!--<tr>-->
+                    <!--<td>红烧牛肉面</td><td>*2</td><td>￥30</td>-->
+                  <!--</tr>-->
+                  <!--<tr>-->
+                    <!--<td>尖椒炒鸡蛋</td><td>*3</td><td>￥36.5</td>-->
+                  <!--</tr>-->
+                  </table>
+                </p>
+                <p><span id="OrderTotalPrice">总价:￥89.50</span></p>
+            </div>
+          </div>
+        </div>
+        <!--endprint-->
+
+        <div class="am-u-sm-12 am-u-md-8 am-u-md-pull-4">
+          <form class="am-form am-form-horizontal">
+            <!--<h3>订单信息</h3>-->
+            <!--<p>市立医院(东院) <span style="color:red;margin-left: 85px" >已付款</span></p>-->
+            <!--<p>订单编号:20160831162323009</p>-->
+            <!--<p>预定时间:2016-08-31 12:00:00</p>-->
+            <!--<p>-->
+            <!--<table width="300px">-->
+            <!--&lt;!&ndash;<thead>&ndash;&gt;-->
+            <!--&lt;!&ndash;<th>名称</th><th>数量</th><th>价格</th>&ndash;&gt;-->
+            <!--&lt;!&ndash;</thead>&ndash;&gt;-->
+            <!--<tr>-->
+            <!--<td>红烧牛肉面</td><td>*2</td><td>￥30</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+            <!--<td>尖椒炒鸡蛋</td><td>*3</td><td>￥36.5</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+            <!--<td>红烧牛肉面</td><td>*2</td><td>￥30</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+            <!--<td>尖椒炒鸡蛋</td><td>*3</td><td>￥36.5</td>-->
+            <!--</tr>-->
+            <!--</table>-->
+            <!--</p>-->
+            <!--<p>总价:￥89.50</p>-->
+
+            <!--<hr />-->
+            <!--<h3>订餐人信息</h3>-->
+            <!--<p>订餐人姓名:张伟</p>-->
+            <!--<p>订餐人电话:13677889988</p>-->
+            <!--<p>订餐人地址:住院部 4F 神经科 4011床</p>-->
+            <!--<div class="am-form-group">-->
+              <!--<label for="user-name" class="am-u-sm-3 am-form-label">订单编号</label>-->
+              <!--<div class="am-u-sm-9">-->
+                <!--<input type="text" id="OrderID" value="20160831160505009" readonly>-->
+                <!--<small>订单号</small>-->
+              <!--</div>-->
+            <!--</div>-->
+            <!--<div class="am-form-group">-->
+              <!--<label for="user-name" class="am-u-sm-3 am-form-label">清单</label>-->
+              <!--<div class="am-u-sm-9">-->
+                <!--<table width="100%">-->
+                  <!--<thead>-->
+                    <!--<th>名称</th><th>数量</th><th>价格</th>-->
+                  <!--</thead>-->
+                  <!--<tr>-->
+                    <!--<td>红烧牛肉面</td><td>2</td><td>30</td>-->
+                  <!--</tr>-->
+                  <!--<tr>-->
+                  <!--<td>尖椒炒鸡蛋</td><td>3</td><td>36.5</td>-->
+                  <!--</tr>-->
+                  <!--<tr>-->
+                    <!--<td>红烧牛肉面</td><td>2</td><td>30</td>-->
+                  <!--</tr>-->
+                  <!--<tr>-->
+                    <!--<td>尖椒炒鸡蛋</td><td>3</td><td>36.5</td>-->
+                  <!--</tr>-->
+                <!--</table>-->
+              <!--</div>-->
+            <!--</div>-->
+            <!--<div class="am-form-group">-->
+              <!--<label for="user-name" class="am-u-sm-3 am-form-label"></label>-->
+              <!--<div class="am-u-sm-9" >-->
+                <!--<h5 style="margin-left:320px">总价:66.5元</h5>-->
+              <!--</div>-->
+            <!--</div>-->
+            <!--<hr />-->
+
+            <!--<div class="am-form-group">-->
+              <!--<label for="user-name" class="am-u-sm-3 am-form-label">单品名</label>-->
+              <!--<div class="am-u-sm-9">-->
+                <!--<input type="text" id="FoodName" placeholder="单品名 / FoodName" >-->
+                <!--<small>单品名</small>-->
+              <!--</div>-->
+            <!--</div>-->
+
+            <!--<div class="am-form-group">-->
+              <!--<label for="user-name" class="am-u-sm-3 am-form-label">价格</label>-->
+              <!--<div class="am-u-sm-9">-->
+                <!--<input type="text" id="FoodPrice" placeholder="价格 / Price" >-->
+                <!--<small>价格</small>-->
+              <!--</div>-->
+            <!--</div>-->
+
+            <div class="am-form-group">
+              <label for="user-email" class="am-u-sm-3 am-form-label">送餐组</label>
+              <div class="am-u-sm-9">
+                <select id="OrderYuanGongGroup" data-am-selected="{btnSize: 'sm'}">
+                  <option value="1">送餐1组</option>
+                  <option value="2">送餐2组</option>
+                  <option value="3">送餐3组</option>
+                </select>
+                <small>请选择送餐组</small>
+              </div>
+            </div>
+
+            <div class="am-form-group">
+              <label for="user-email" class="am-u-sm-3 am-form-label">送餐员</label>
+              <div class="am-u-sm-9">
+                <select id="OrderYuanGongID" data-am-selected="{btnSize: 'sm'}">
+                </select>
+                <small>请选择送餐员</small>
+              </div>
+            </div>
+
+            <div class="am-form-group">
+              <div class="am-u-sm-9 am-u-sm-push-3">
+                <button type="button" id="btnSaveYuanGong" class="am-btn am-btn-primary" onclick="YuanGongSave()">保存</button>
+              </div>
+            </div>
+
+            <hr/>
+
+            <div class="am-form-group">
+              <label for="user-email" class="am-u-sm-3 am-form-label">订单状态</label>
+              <div class="am-u-sm-9">
+                <select id="OrderState" data-am-selected="{btnSize: 'sm'}">
+                  <option value="0">未完成</option>
+                  <option value="1">已完成</option>
+                </select>
+                <small>更改订单状态</small>
+              </div>
+            </div>
+
+            <div class="am-form-group">
+              <div class="am-u-sm-9 am-u-sm-push-3">
+                <button type="button" id="btnSaveState" class="am-btn am-btn-primary" onclick="StateSave()">保存</button>
+              </div>
+            </div>
+            <hr/>
+
+            <div class="am-form-group">
+              <label for="user-email" class="am-u-sm-3 am-form-label">付款情况</label>
+              <div class="am-u-sm-9">
+                <select id="OrderIsPayy" data-am-selected="{btnSize: 'sm'}">
+                  <option value="0">未付款</option>
+                  <option value="1">已付款</option>
+                </select>
+                <small>更改付款情况</small>
+              </div>
+            </div>
+            <!--<div class="am-form-group" id="CategoryID">-->
+              <!--<label for="user-email" class="am-u-sm-3 am-form-label">是否上线</label>-->
+              <!--<div class="am-u-sm-9">-->
+                <!--<select id="FoodIsShow" data-am-selected="{btnSize: 'sm'}">-->
+                  <!--<option value="0">不显示</option>-->
+                  <!--<option value="1">显示</option>-->
+                <!--</select>-->
+                <!--<small>请选择是否上线</small>-->
+              <!--</div>-->
+            <!--</div>-->
+
+            <!--<div class="am-form-group">-->
+              <!--<label for="user-intro" class="am-u-sm-3 am-form-label">描述 / Des</label>-->
+              <!--<div class="am-u-sm-9">-->
+                <!--<textarea class="" rows="5" id="FoodDes" placeholder="描述"></textarea>-->
+                <!--<small>250字以内写出单品的描述.</small>-->
+              <!--</div>-->
+            <!--</div>-->
+
+            <div class="am-form-group">
+              <div class="am-u-sm-9 am-u-sm-push-3">
+                <button type="button" id="btnSaveIsPay" class="am-btn am-btn-primary" onclick="IsPaySave()">保存</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <footer class="admin-content-footer">
+      <hr>
+      <p class="am-padding-left">© 2014 AllMobilize, Inc. Licensed under MIT license.</p>
+    </footer>
+
+  </div>
+  <!-- content end -->
+
+</div>
+
+<a href="#" class="am-icon-btn am-icon-th-list am-show-sm-only admin-menu" data-am-offcanvas="{target: '#admin-offcanvas'}"></a>
+
+<footer>
+  <hr>
+  <p class="am-padding-left">© 2014 AllMobilize, Inc. Licensed under MIT license.</p>
+</footer>
+
+<!--[if lt IE 9]>
+<script src="http://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
+<script src="assets/js/amazeui.ie8polyfill.min.js"></script>
+<![endif]-->
+
+<!--[if (gte IE 9)|!(IE)]><!-->
+<script src="assets/js/min.js"></script>
+<!--<![endif]-->
+<script src="assets/js/amazeui.min.js"></script>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>

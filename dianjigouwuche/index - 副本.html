@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head lang="en">
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>餐厅点餐</title>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<!--<link rel="stylesheet" type="text/css" href="http://libs.useso.com/js/font-awesome/4.2.0/css/font-awesome.min.css">-->
+<link rel="stylesheet" type="text/css" href="css/4.2.0/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body >
+<div class="ct-pageWrapper" >
+  <main>
+	<div class="container">
+	  <div class="row">
+		<div class="col-md-3">
+		  <div class="widget">
+			<h2 class="widget-header">购物车</h2>
+			<div class="ct-cart"></div>
+		  </div>
+		</div>
+          <div class="col-lg-offset-3">
+              <div class="widget">
+                  <div class="btn-group btn-group-lg">
+                     <button type="button" class="btn btn-default" style="width:200px" onclick="Show(-1)">所有</button>
+                      <button type="button" class="btn btn-default" onclick="Show(1)" style="width:200px">肉类</button>
+                      <button type="button" class="btn btn-default" onclick="Show(2)" style="width:200px">蔬菜类</button>
+                      <button type="button" class="btn btn-default" onclick="Show(3)" style="width:200px">主食</button>
+                      <button type="button" class="btn btn-default" id="btnDJS" onclick="Show(3)" style="width:50px" >100</button>
+                  </div>
+              </div>
+          </div>
+		<div class="col-md-9">
+		  <div class="row" id="FoodInfo">
+			<h1>查询中,请稍候...</h1>
+			<!--<div class="col-sm-4">-->
+			  <!--<div class="ct-product">-->
+				<!--<div class="image"><img src="images/product-01.jpg" alt=""></div>-->
+				<!--<div class="inner"><a href="#" class="btn btn-motive ct-product-button"><i class="fa fa-shopping-cart"></i></a>-->
+				  <!--<h2 class="ct-product-title">Box of macaroons</h2><h2 class="ct-product-id" style="display: none">123</h2>-->
+				  <!--<p class="ct-product-description">A very delicious macaroons ...</p><span class="ct-product-price">$19.99</span>-->
+				<!--</div>-->
+			  <!--</div>-->
+			<!--</div>-->
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </main>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/shop.min.js" charset="UTF-8"></script>
+<script>
+	$(document).ready(function() {
+		//alert(GetQueryString("Name"));
+
+        Bind();
+
+		//ck();
+
+        setInterval(mJian,1000);//每秒-1
+	});
+    //倒计时
+    function mJian(){
+        var num=document.getElementById("btnDJS").innerText;
+        if (num<1) {
+            closeChrome();
+        }
+        else {
+            num--;
+            document.getElementById("btnDJS").innerText = num;
+        }
+
+    }
+    //关闭页面
+    function closeChrome(){
+        var browserName = navigator.appName;
+        if (browserName == "Netscape") {
+            window.opener = null;
+            window.open('', '_self', '');
+            window.close();
+        } else {
+            window.close();
+        }
+    }
+	//清空数据
+    function cleanList()
+    {
+        $("#FoodInfo").html("");
+    }
+	function ck() {
+		screenfull && screenfull.request();
+	};
+    //数据绑定
+    function Bind() {
+        if(GetQueryString("Category")==null)
+        {
+            window.location.href="index.html?Category=-1";
+        }
+        $.ajax({
+            method: "Post",
+            url: "http://10.20.33.243/api/DingCan/SelectFoodByPageIndex",
+            data: {intPageIndex: 0, eachPageNum: 100,Category:GetQueryString("Category"),FoodName:"-1",IsShow:1}//Name:"张琳琳", Phone:"13865767123", Address:"住院部神经科2F 401床", ShopID:"1", List:"1,红烧肉,-2,50.00|3,尖椒炒鸡蛋,1,18.00|2,糖醋排骨,3,135.00", OrderTime:"2016082418"}//,FoodName:"炸五花肉",Category:"1",pic:"dedhj.jpg",ShopID:"1",MenuID:"1",Des:"薄片猪肉500g",Price:"88.50",AdminID:"201608089987",IsShow:"1"}//phone:"1311114444"}
+        }).done(function (ndata) {
+            var ddd = JSON.parse(ndata);
+            var arrayResult = new Array();
+            if (ddd.Code == 200) {
+		cleanList();
+                arrayResult = ddd.result;
+                cleanList();
+                //alert("ok");
+                var $divFood = $("#FoodInfo");
+                var vTr = "";
+                for (var i = 0; i < arrayResult.length; i++) {
+                    //  alert(arrayResult[i].Name);
+                    //给div赋值
+                    vTr += '<div class="col-sm-4" id='+'"food'+arrayResult[i].Category+i+'"> <div class="ct-product"> <div class="image"><img  src="../'+arrayResult[i].pic+'" style="width:260px;height:180px" alt=""></div> <div class="inner"><a href="#" class="btn btn-motive ct-product-button"><i class="fa fa-shopping-cart"></i></a>' +
+                            '<h2 class="ct-product-title">' + arrayResult[i].FoodName + '</h2><h2 class="ct-product-id" style="display: none">' + arrayResult[i].ID + '</h2>' +
+                            '<p class="ct-product-description" style="height:50px">' + arrayResult[i].Des + '</p><span class="ct-product-price">￥' + arrayResult[i].Price + '</span> </div> </div> </div>';
+                }
+                $divFood.append(vTr);
+				$('body').ctshop({
+					currency: '￥',
+					paypal: {
+						currency_code: 'RMB'
+					}
+				});
+            }
+            //alert($('body').html());
+        }).fail(function (err, textStatus, errorThrown) {
+        	console.log(err);
+            console.log(textStatus);
+            console.log(errorThrown);
+        })
+    }
+    //获取url中参数
+    function GetQueryString(name)
+    {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)return  decodeURIComponent(r[2]); return null;
+    }
+    //类别分类
+    function  Show(category) {
+		$(".col-sm-4").each(function() {
+			//var strId=this.id.substring(0,this.id.length-1);
+			if(category==-1)//说明是所有的
+			{
+				$(this).show();
+			}
+			//有类别的
+			else {
+				if (this.id.substring(0, this.id.length - 1) != "food" + category) {
+					$(this).hide();
+				}
+				else {
+					$(this).show();
+				}
+			}
+		});
+	}
+</script>
+</div>
+<div style="text-align:center;">
+<p><button type="button" class="btn btn-success" onclick="closeChrome()">不定餐了，关闭页面！</button></p>
+</div>
+</body>
+</html>

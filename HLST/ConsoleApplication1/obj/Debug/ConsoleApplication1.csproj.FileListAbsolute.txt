@@ -1,0 +1,9 @@
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe.config
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\ConsoleApplication1.pdb
+E:\HLSTCT\HLST\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
+E:\HLSTCT\HLST\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\BLL.dll
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\DbConnection.dll
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\BLL.pdb
+E:\HLSTCT\HLST\ConsoleApplication1\bin\Debug\DbConnection.pdb
